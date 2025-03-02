@@ -1,0 +1,74 @@
+Web Apps & Tools Utilized for Leverage
+
+----------------------
+|  Malware Analysis  |
+----------------------
+######################################################################################################################################################################################################################################
+
+## Static Analysis Tools  
+*Tools for examining malware without execution, focusing on binary structure, disassembly, and signatures.*
+
+- https://mh-nexus.de/en/hxd/                      ***Hex editor for inspecting and modifying binary files.***
+- https://ghidra-sre.org/                          ***Software reverse engineering (SRE) suite of tools.***
+- https://ntcore.com/explorer-suite/               ***Collection of utilities for analyzing PE (Portable Executable) files.***
+- https://systeminformer.sourceforge.io/downloads  ***Advanced system monitoring tool for inspecting running processes.***  
+- https://www.winitor.com/download                 ***Windows forensic analysis tool for deeper inspection.***  
+- https://hex-rays.com/ida-pro/                    ***Powerful disassembler and debugger used for reverse engineering binaries.***
+
+######################################################################################################################################################################################################################################
+
+## Dynamic Analysis Tools  
+*Tools that execute malware in a controlled environment to observe behavior, system modifications, and network activity.*
+
+- https://procdot.com/              ***Visualizes process interactions and system calls during execution.***  
+- https://www.joesandbox.com/       ***Automated malware analysis providing in-depth behavioral reports.***  
+- https://www.hybrid-analysis.com/  ***Cloud-based sandbox for dynamic malware analysis with threat intelligence.***
+- https://x64dbg.com/               ***Open-source debugger for analyzing Windows executables (both 32-bit and 64-bit).***
+--- Scylla Hide can also be used in combination with the above as a plugin to hide it from Malware -> https://github.com/x64dbg/ScyllaHide
+
+######################################################################################################################################################################################################################################
+
+## Threat Intelligence & Malware Databases  
+- https://www.virustotal.com/gui/  ***Aggregates antivirus scan results and provides behavioral analysis.***  
+- https://urlhaus.abuse.ch/        ***Tracks and shares active malware distribution URLs.***  
+
+######################################################################################################################################################################################################################################
+
+## Malware Analysis Environment
+
+- https://remnux.org/   ***Linux distribution preloaded with tools for malware analysis and reverse engineering.***  
+
+######################################################################################################################################################################################################################################
+
+------------------------------
+| Stages of Malware Analysis |
+------------------------------
+
+1. Fully Automated Analysis
+File Interactions – File creation, modification, or deletion.
+Network Activity – Remote connections or payload downloads.
+Process Behavior – Child processes or code injection.
+System Changes – Registry edits, persistence, or service creation.
+
+2. Static Property Analysis
+String Extraction – Finds readable text like file paths, IPs, or commands.
+Header Analysis – Determines file type, structure, and timestamps.
+Entropy Assessment – Detects packing or obfuscation attempts.
+Import/Export Inspection – Identifies functions used by the file.
+
+3. Interactive Behaviour Analysis
+Behavior Testing – Triggers functionality with specific inputs.
+Evasion Detection – Identifies anti-sandbox and anti-VM tactics.
+System Monitoring – Tracks file, registry, and network activity.
+
+4. Manual Code Reversing
+Code Decryption – Unpacking obfuscated logic.
+Capability Analysis – Identifying core malware functions.
+Function & Algorithm Review – Examining encryption and anti-analysis techniques.
+Artifact Identification – Extracting IOCs for detection and mitigation.
+
+--- Lenny Zeltser, 2025, How You Can Start Learning Malware Analysis, Sans.org ---
+######################################################################################################################################################################################################################################
+
+- https://www.urlvoid.com/
+- https://urlscan.io/
