@@ -1,0 +1,69 @@
+OWASP Top 10 API Security Risks – 2023
+
+| Exploit Name | API Risk Number | Description |
+|--------------|-----------------|-------------|
+| **Broken Object Level Authorization** | API1:2023 | Object level authorization checks should be considered in every function that accesses a data source using an ID from the user. |
+| **Broken Authentication** | API2:2023 | Authentication flaws can allow attackers to exploit tokens or impersonate users temporarily or permanently. |
+| **Broken Object Property Level Authorization** | API3:2023 | Lack of or improper authorization validation at the object property level can lead to unauthorized data exposure or manipulation. |
+| **Unrestricted Resource Consumption** | API4:2023 | Insufficient controls can lead to resource exhaustion attacks (e.g., DDoS) or excessive operational costs from API misuse. |
+| **Broken Function Level Authorization** | API5:2023 | Authorization flaws in complex access control policies can allow attackers to access restricted functions or resources. |
+| **Unrestricted Access to Sensitive Business Flows** | API6:2023 | Exposing sensitive business flows (e.g., transactions, comments) without proper controls can result in misuse. |
+| **Server Side Request Forgery (SSRF)** | API7:2023 | SSRF flaws can allow attackers to manipulate an API to send requests to unintended destinations. |
+| **Security Misconfiguration** | API8:2023 | Misconfigurations in API settings or systems can open doors to attacks if not properly managed. |
+| **Improper Inventory Management** | API9:2023 | Lack of proper API documentation or inventory management can expose deprecated or vulnerable endpoints. |
+| **Unsafe Consumption of APIs** | API10:2023 | Developers may trust third-party APIs without adequate security checks, leading to exploitation of integrated services. |
+
+| **Preventative Measure** | **Description** |
+|--------------------------|-----------------|
+| **Secure Data Transmission** | Use encrypted channels for data transmission to prevent exposure of sensitive data through man-in-the-middle attacks. |
+| **Adequate Data Validation** | Ensure proper validation and sanitization of data received from external APIs before processing or forwarding it to downstream components. This mitigates risks such as injection attacks, data corruption, or remote code execution. |
+| **Robust Authentication** | Employ secure authentication methods when communicating with other APIs to prevent unauthorized access to sensitive data or critical functionality. |
+| **Sufficient Rate-Limiting** | Implement rate-limiting mechanisms to prevent an API from overwhelming another API, thereby protecting against denial-of-service attacks. |
+| **Adequate Monitoring** | Implement robust monitoring of API-to-API interactions to promptly detect and respond to security incidents. |
+
+Useful CURL commands
+-X | Specify what method, e.g "POST,GET,PUT,DELETE"
+-H | What to put in header, e.g. " 'Authorization: Bearer xxx' or 'Content-Type: application/json"
+-I | dumps return header information into the terminal
+-d | can be quite variable. Either refer to documentation or understand expected request, random e.g. " '{"Data": "DatarelatedData"}' "
+-u | server specific username/password, contextual for retrieving some platforms JWT, e.g. -u user:password
+-A | sometimes platforms can be a bit specific with the requirement of certain useragents, e.g. -A " 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36' "
+--url | as it appears. specifying the url
+
+Useful JQ commands
+jq '.parent[] | select(.child == "")'
+
+
+
+HTB Exploitation
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+API1 - Limited Subject-Based Requests:
+I exploited an insecure API endpoint by bypassing authentication controls. I requested reports and received not just my own, but every report from every company. The API failed to validate my ID, allowing me to access data I wasn’t authorized to see. This was a clear instance of BOLA (Broken Object Level Authorization).
+
+API2 - Impersonation, Lateral or Vertical Movement:
+I noticed the platform lacked proper rate limiting on OTP attempts. I brute-forced a 4-digit OTP and successfully changed a user's password, giving me full access to their account. This allowed me to move laterally across accounts, gaining control over multiple user profiles without detection.
+
+API3 - Exposed or Manipulable Data:
+I discovered excessive data exposure when I accessed supplier and customer details like emails and phone numbers. This information could let me bypass the platform and communicate directly with suppliers. Additionally, I manipulated item prices by updating my cart, which should have been restricted at the object level or through a separate API endpoint, but wasn't.
+
+API4 - DDoS/DoS:
+I found a lack of rate and size limiting on the platform. By performing repeated password resets and uploading large files, I successfully caused a Denial of Service (DoS) attack on the server, overloading the system and causing service disruptions for other users.
+
+API5 - Functions Allowing Improper Use:
+Even though I didn’t have the correct user role, I was able to access restricted customer location data. This could have been prevented if proper role-based access controls were implemented and the source code checked my role before granting access to sensitive information.
+
+API6 - Exposed Customer Location Data:
+I exploited another API endpoint to gather detailed information about specific customers. With access to sensitive data like postcodes, cities, and customerIDs, I could pinpoint customers' exact locations, violating their privacy.
+
+API7 - Sensitive Information Exposure via URI Manipulation:
+By manipulating the URI structure, I was able to access sensitive server files, including the password file. This allowed me to gain valuable insights into the platform’s internal structure and potentially access hashed passwords.
+
+API8 - SQL Injection:
+I exploited an SQL injection vulnerability due to a lack of input sanitization. This allowed me to inject malicious code into the database, bypassing security measures and running unauthorized queries, including accessing restricted data via headers.
+
+API9 - Neglected Inventory Management:
+I found an old, deprecated API endpoint that was still accessible despite no longer being in use. Through this endpoint, I was able to obtain customer and supplier account information, including password hashes, potentially allowing me to crack them and gain further unauthorized access.
+
+API10 - Lack of Zero Trust:
+I notice that "Swagger" uses a third-party payment API, "PayFastAPI," without validating or sanitizing the data it sends. I exploit this by injecting malicious payloads into the payment data returned by PayFastAPI. Since the developers trust the API without any security checks, the malicious payload is processed by ShopQuick's backend. This allows me to execute a remote code injection attack, gaining unauthorized access to sensitive customer data and potentially performing fraudulent transactions.
+
