@@ -1,0 +1,53 @@
+Machine=Lame Creator=ch4p
+
+How many of the nmap top 1000 TCP ports are open on the remote host?
+    nmap -sS --top-ports 1000 10.10.10.10 -vv was able to tell me the top open ports
+    [4]
+
+What version of VSFTPd is running on Lame?
+    nmap -p21 10.10.10.10 --script banner got the version number
+    [2.3.4]
+
+There is a famous backdoor in VSFTPd version 2.3.4, and a Metasploit module to exploit it. Does that exploit work here?
+    It had been a while since using metasploit but I summoned it by using msfconsole.
+    I then typed 'help' to understand how I could search for the backdoor.
+    I found the term 'search' and used this in combination with backdoor to find a large number of results.
+    Then I typed search -help to understand what depth I could filter for.
+    I then was able to refine the search down by using 'search backdoor FTP'
+    I located the resource and typed 'use 1' to get started.
+    I then went through the options, setting the desired target host and typed exploit.
+    When the connection was created, we found that it required a password 'USER: 331 Please specify the password.' which we did not have, leaving this exploit unsuccessful.
+    [No].
+
+What version of Samba is running on Lame? Give the numbers up to but not including "-Debian".
+    nmap --script=smb-os-discovery -p445 10.10.10.10 gave me the OS version.
+    [3.0.20]
+
+What 2007 CVE allows for remote code execution in this version of Samba via shell metacharacters involving the SamrChangePassword function when the "username map script" option is enabled in smb.conf?
+
+
+Exploiting CVE-2007-2447 returns a shell as which user?
+    When I had exploited the machine by setting the options (RHOST,RPORT,LHOST,LPORT) and commanding 'exploit', I was then able to command 'whoami' which returned the user I was on the machine.
+    [root]
+
+Submit the flag located in the makis user's home directory.
+    This was easy by jumping directories to the user's home directory and 'cat flag.txt'
+    [29644d58e77f9934b0ea0bd130a8970c]
+
+Submit the flag located in root's home directory.
+    Since I am root, this flag was an easy change in directories.
+    cd ~
+    cat root.txt
+    [e7dc646b6c3e0248bf9a223cff33db52]
+
+We'll explore a bit beyond just getting a root shell on the box. While the official writeup doesn't cover this, you can look at 0xdf's write-up for more details. With a root shell, we can look at why the VSFTPd exploit failed. Our initial nmap scan showed four open TCP ports. Running netstat -tnlp shows many more ports listening, including ones on 0.0.0.0 and the boxes external IP, so they should be accessible. What must be blocking connection to these ports?
+    From understanding this could be because of many items, one of which would be a:
+    'firewall'
+
+When the VSFTPd backdoor is trigger, what port starts listening?
+    Looking at the documentation, it opens up the backdoor on port
+    [6200]
+
+When the VSFTPd backdoor is triggered, does port 6200 start listening on Lame?
+    That is what the documentation states and is verified.
+    [yes]
