@@ -1,1 +1,24 @@
-"placeholder" 
+
+
+Web_Spookifier
+Context: There's a new trend of an application that generates a spooky name for you. Users of that application later discovered that their real names were also magically changed, causing havoc in their life. Could you help bring down this application?
+
+Knowledge Gain: Here I learned more about Server-Side Template Injection where RCE can be achieved with full-control of the server.
+To understand more about, I used some of the most common example:
+${{<%[%'"}}%\.
+
+From here we can potentially identify the engine via this method:
+${7*7}
+   ├── [a{*comment*}b] Smarty (vulnerable)
+   │       ├── ${"z".join("ab")} → Mako (vulnerable)
+   |       └── Unknown (vulnerability status uncertain)
+   └── [{{7*7}}]
+           ├── non-vulnerable
+           ├── {{7*'7'}} → Twig (vulnerable)
+           ├── {{7*'7'}} → Jinja2 (vulnerable)
+           └── Unknown (vulnerability status uncertain)
+
+** Courtesy of https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Template%20Injection **
+
+Using this method, the most common example caused the server to crash, the first one through the engine was successful, additionally ${"z".join("ab")} was also successful.
+I was able to replicate results using the $ symbol across different commands.
