@@ -1,0 +1,22 @@
+Machine=Titanic | Creator=
+
+nmap -sV -sC 10.10.10.10
+PORT   STATE SERVICE VERSION
+80/tcp open  http    Apache httpd 2.4.52
+|_http-server-header: Apache/2.4.52 (Ubuntu)
+Service Info: Host: titanic.htb
+
+
+*** ADD TITANIC.HTB to /etc/hosts to resolve it locally ***
+
+
+When using the book functionality of the website, it returns a ticket which we intercepted using burp-suite, and found http://titanic.htb/download?ticket=random_id.json
+
+Local File Inclusion (LFI)
+We can attempt the above by switching out the random_id for ../../../etc/passwd which ended up successful.
+Extracting /etc/hosts also comes up with successful and we find an additional domain 'dev.'
+
+
+*** ADD DEV.TITANIC.HTB to /etc/hosts AS WELL ***
+
+Delving into dev. we find gitea and documentation relating to its configuration.
