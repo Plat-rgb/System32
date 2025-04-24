@@ -1,0 +1,48 @@
+Machine=Origins | Creator=CyberJunkie
+
+Scenario: A major incident has recently occurred at Forela. Approximately 20 GB of data were stolen from internal s3 buckets and the attackers are now extorting Forela. 
+During the root cause analysis, an FTP server was suspected to be the source of the attack. It was found that this server was also compromised and some data was stolen, 
+leading to further compromises throughout the environment. You are provided with a minimal PCAP file. Your goal is to find evidence of brute force and data exfiltration.
+
+
+Questions:
+What is the attacker's IP address?
+    To visualise where this was, I scoured through the logs, looking at the endpoints, conversations, and any objects that had been sent over.
+    The IP's '15.206.185.207' and '172.31.45.144' had a significant amount of packets, to determine this on a deeper level, 
+    I used the ftp || ftp-data search and found the responses came from 172.31.45.144, displaying that the IP address was indeed the former.
+    [15.206.185.207]
+
+It's critical to get more knowledge about the attackers, even if it's low fidelity. Using the geolocation data of the IP address used by the attackers, what city do they belong to?
+    I use iplocation.net as it allows for the use of APIs to speed up the process.
+    [Mumbai]
+
+Which FTP application was used by the backup server? Enter the full name and version. (Format: Name Version)
+    This is displayed in the initial packets via my first search.
+    [(vsFTPd 3.0.5)]
+
+The attacker has started a brute force attack on the server. When did this attack start?
+    I took another initial packet via that search where the attacker decides to brute the FTP server credentials.
+    [2024-05-03 04:12:54] - UTC TIME
+
+What are the correct credentials that gave the attacker access? (Format username:password)
+    Performing this search query allows me to easily filter out the sheer amount of brute-force and navigate through the rest. ftp.response.code != 530 && ftp.response.code != 331
+    From there, I then found the 'login successful' packet and found the credentials used by following the tcp.stream
+    [forela-ftp:ftprocks69$]
+
+The attacker has exfiltrated files from the server. What is the FTP command used to download the remote files?
+    This was easy with the previous search query eliminating a majority of the noise. As I had previously found the objects via the file -> export-objects -> FTP
+    I was able to find the specific packets easily and follow the tcp.stream again.
+    [RETR]
+
+Attackers were able to compromise the credentials of a backup SSH server. What is the password for this SSH server?
+    This one caught me offguard as I did not download the documents transferred but this was within the data exfiltration.
+    [**B@ckup2024!**]
+
+What is the s3 bucket URL for the data archive from 2023?
+    txt file transfer which is in plain text.
+    https://2023-coldstorage.s3.amazonaws.com # bulk data from 2023, if required anything from here contact simon or alonzo. Retention period is 4 years\n
+
+The scope of the incident is huge as Forela's s3 buckets were also compromised and several GB of data were stolen and leaked. It was also discovered that the attackers used social engineering to gain access to sensitive data and extort it. What is the internal email address used by the attacker in the phishing email to gain access to sensitive data stored on s3 buckets?
+    To find this, I translated the domain into ASCII and searched for where (@forela.co.uk) or (40 66 6F 72 65 6C 61 2E 63 6F 2E 75 6B) was contained. 
+    This allowed me to discover that this was in the buckets.txt.
+    [archivebackups@forela.co.uk]
