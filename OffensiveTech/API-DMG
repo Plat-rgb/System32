@@ -33,7 +33,7 @@ Useful CURL commands
 Useful JQ commands
 jq '.parent[] | select(.child == "")'
 
-
+** Useful Resources: https://github.com/swisskyrepo/PayloadsAllTheThings
 
 HTB Exploitation
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
