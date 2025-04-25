@@ -1,0 +1,176 @@
+Machine:Unsupervised | Creator:MrManj
+
+Sherlock Scenario
+The incident happened around 4:30 PM on Friday, "The Last day of the week" at the Accounts/Marketing department of "Finance XYZ" company. 
+There weren't many people in the department, and the remaining were not paying much attention to their surroundings as they were getting ready to head home. 
+After the weekend on Monday while reviewing the security cam footage member of an IT team saw "Eddie" a new intern in the Accounts/Marketing department, 
+plugging a USB into an unauthorized computer (containing sensitive financial and marketing documents), interacting with computer and unplugging the USB before heading out. 
+As the incident happened 2 days ago, and not having enough knowledge of what Eddie did the security team use caution while asking around and gathering intel to avoid causing suspicion. 
+The only information they were able to find out was that Eddie had a "Toshiba" USB. 
+You are provided with a partial image of the “unauthorized computer" as well as a list of important documents, to investigate what he did and if he stole something sensitive or not?
+
+
+** I had to install and use a new tool called 'FTK Imager'. It took some time to understand the structure but I am now able to visualise the file structure it represents.
+** Part of the image had some registry keys associated, which I exported using '*right-click* export files' on the config file, and opened this in registry explorer from Zimmerman's tools.
+** Add this my toolset, very cool learning involved: https://thumbcacheviewer.github.io/
+
+Questions
+Find out the time zone of victim PC. (UTC+xx:xx)
+Active Learning:
+              ---------------------------------------------------------------------
+              | What does ActiveTimeBias mean?
+              | It's the offset from UTC in minutes.
+              |  
+              | Windows uses it to determine local time = UTC - ActiveTimeBias.
+              | 
+              | Why is it negative for UTC+05:00?
+              | If your timezone is UTC+05:00, then:
+              |
+              | You are 5 hours ahead of UTC.
+              | 
+              | To go from UTC to your local time, you'd do:
+              | Local time = UTC + 300 minutes.
+              |  
+              | But Windows does:
+              |
+              | Local time = UTC - ActiveTimeBias
+              | So to get the same result,
+              | you need: ActiveTimeBias = -300.
+              | 
+              | Hence, ActiveTimeBias = -300 is correct for UTC+05:00.
+              ------------------------------------------------------------------------
+    Data:
+    ------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | **Value Name**       | **Value Data**                                                     | **Value Data Raw**                                            |
+    |----------------------|---------------------------------------------------------------------|---------------------------------------------------------------|
+    | Bias                 | -300                                                                | 4294966996                                                    |
+    | DaylightBias         | -60                                                                 | 4294967236                                                    |
+    | DaylightName         | @tzres.dll,-481                                                     | @tzres.dll,-481                                               |
+    | DaylightStart        | Month 0, week of month 0, day of week 0, Hours:Minutes:Seconds:Milliseconds 0:0:0:0 | 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00 |
+    | StandardBias         | 0                                                                   | 0                                                             |
+    | StandardName         | @tzres.dll,-482                                                     | @tzres.dll,-482                                               |
+    | StandardStart        | Month 0, week of month 0, day of week 0, Hours:Minutes:Seconds:Milliseconds 0:0:0:0 | 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00 |
+    | TimeZoneKeyName      | West Asia Standard Time                                             | West Asia Standard Time                                       |
+    | ActiveTimeBias       | -300                                                                | 4294966996                                                    |
+    ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    I found this within the registry 'ControlSet001/Control/TimeZoneInformation'.
+    [UTC+05:00]
+
+
+Employees should be trained not to leave their accounts unlocked. What is the username of the logged in user?
+    Microsoft\Windows\CurrentVersion\Authentication\LogonUI details the logged-on user.
+    [MrManj]
+
+How many USB storage devices were attached to this host in total?
+    I first went around ControlSet001/Enum/STORAGE, ControlSet001/Enum/USB, & MountedDevices. Whilst each may have been helpful, none had as much help as: 
+    ControlSet001/Enum/USBSTOR which allows me to visualise the information more clearly.
+    With that in mind, I was able to extract the information from the table, visualised below:
+    | Timestamp           | Manufacturer | Title              | Version  | Serial Number              | Device Name                         | Disk Id                                | Installed           | First Installed     | Last Connected      | Last Removed        |
+    |---------------------|--------------|---------------------|----------|-----------------------------|--------------------------------------|------------------------------------------|----------------------|----------------------|----------------------|----------------------|
+    | 2024-02-26 18:42:27 | Ven_Generic- | Prod_Compact_Flash  | Rev_1.01 | 058F63626420&1              | Generic- Compact Flash USB Device    | {abc57c8d-d4d6-11ee-b921-000c298241c9}  | 2024-02-26 18:42:27 | 2024-02-26 18:42:27 | 2024-02-26 18:42:27 | 2024-02-26 18:42:33 |
+    | 2024-02-26 18:42:28 | Ven_Generic- | Prod_MS/MS-Pro      | Rev_1.03 | 058F63626420&3              | Generic- MS/MS-Pro USB Device        | {abc57c90-d4d6-11ee-b921-000c298241c9}  | 2024-02-26 18:42:28 | 2024-02-26 18:42:28 | 2024-02-26 18:42:28 | 2024-02-26 18:42:33 |
+    | 2024-02-26 18:42:27 | Ven_Generic- | Prod_SD/MMC         | Rev_1.00 | 058F63626420&0              | Generic- SD/MMC USB Device           | {abc57c8c-d4d6-11ee-b921-000c298241c9}  | 2024-02-26 18:42:27 | 2024-02-26 18:42:27 | 2024-02-26 18:42:27 | 2024-02-26 18:42:33 |
+    | 2024-02-26 18:42:27 | Ven_Generic- | Prod_SM/xD_Picture  | Rev_1.02 | 058F63626420&2              | Generic- SM/xD Picture USB Device    | {abc57c8e-d4d6-11ee-b921-000c298241c9}  | 2024-02-26 18:42:27 | 2024-02-26 18:42:27 | 2024-02-26 18:42:27 | 2024-02-26 18:42:33 |
+    | 2024-02-15 04:14:47 | Ven_Kingston | Prod_DataTraveler_3.0 | Rev_PMAP | 50E549C6930DEF81295A9D24&0 | Kingston DataTraveler 3.0 USB Device | {df921a8e-cbb7-11ee-b918-000c298241c9}  | 2024-02-15 04:14:47 | 2024-02-15 04:14:47 | 2024-02-19 08:21:38 |                      |
+    | 2024-02-23 11:37:50 | Ven_TOSHIBA  | Prod_TransMemory    | Rev_1.00 | CC52AF4C8244CE215E7DEBD4&0  | TOSHIBA TransMemory USB Device       | {4be283e2-d201-11ee-b920-000c298241c9}  | 2024-02-23 11:37:50 | 2024-02-23 11:37:50 | 2024-02-23 11:37:50 | 2024-02-23 11:39:12 |
+    | 2024-02-15 04:10:06 | Ven_VendorCo | Prod_ProductCode    | Rev_2.00 | 4509611187672529927&0       | VendorCo ProductCode USB Device      | {df92194b-cbb7-11ee-b918-000c298241c9}  | 2024-02-15 04:10:06 | 2024-02-15 04:10:06 | 2024-02-26 18:42:45 |                      |
+    ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    As you can see above, there are numerable devices detected. At first glance there may look to be 7 devices connected, however, a quick google search found that the matching serial numbers of the first 4 devices belonged to
+    a USB hub device and not actual USBs, in which the hub would visualise each of its slots within the registry. 
+    This left the Kingston, TOSHIBA, and VendorCo USB devices.
+    [3]
+
+What is the attach timestamp for the USB in UTC?
+    This is found with what I have listed above.
+    [2024-02-23 11:37:50]
+
+What is the detach timestamp for the USB in UTC?
+    This is found with what I have listed above.
+    [2024-02-23 11:39:12]
+
+Which folder did he copy to the USB?
+    I spent way too much time on this question and was overthinking the answer. I searched through the registry explorer and pieces of the ad1 image before stumbling upon the answer.
+    This is a combination of the .txt file sent with the ad1 image initially. Txt information is displayed below:
+    ---------------------------------------------------------------------------------------------------------
+    File and Directory Names are obfuscated for security reasons.
+    
+    Documents                       (directory) "C:\Users\<Username>\Documents"
+    * ....ness .....sals            (directory)
+    ** ........ ...... ltd.docx     (file)
+    ** ........ ..-... Inc.docx     (file)
+    ** ........ .. ..... corp.docx  (file)
+    * ....rnal ...ance              (directory)
+    ** ....... ....nts.xlsx         (file)
+    *......... docs                 (directory)
+    ** ........ ..ads.xlsx          (file)
+    * .....nal ....nce              (directory)
+    ** ........ .....nts.xlsx       (file)
+    ---------------------------------------------------------------------------------------------------------
+    Now, I stumbled on this within the FTK Imager on the path Users\MrManj\AppData\Roaming\Microsoft\Windows\Recent
+    To be clear, you need to click on Recent directly and examine the files within, not expand and only search the subfolders as I initially did.
+    This leads to the following being depicted.
+    -----------------------------------------------------------------------------------------------------
+    | Name                           | Size         | Type                   | Date Modified          |
+    |--------------------------------|--------------|------------------------|------------------------|
+    | AutomaticDestinations          | 56 (1 KB)    | Directory              | 19/02/2024 8:22:25 AM |
+    | CustomDestinations             | 56 (1 KB)    | Directory              | 19/02/2024 4:06:01 AM |
+    | S130                           | 4,096 (4 KB) | NTFS Index Allocation  | 23/02/2024 11:38:59 AM |
+    | Important docs.lnk             | 638 (1 KB)   | Regular File           | 23/02/2024 11:38:59 AM |
+    | Business Leads.lnk             | 830 (1 KB)   | Regular File           | 23/02/2024 11:38:59 AM |
+    | Business Proposals.lnk         | 650 (1 KB)   | Regular File           | 23/02/2024 11:38:48 AM |
+    | Proposal Brnrd ltd.lnk         | 865 (1 KB)   | Regular File           | 23/02/2024 11:38:48 AM |
+    | External Finance.lnk           | 606 (1 KB)   | Regular File           | 22/02/2024 11:57:31 AM |
+    | Current Clients.lnk            | 873 (1 KB)   | Regular File           | 22/02/2024 11:57:31 AM |
+    | Proposal Lg-Arc Inc.lnk        | 907 (1 KB)   | Regular File           | 22/02/2024 5:57:38 AM  |
+    | Proposal NG Garna corp.lnk     | 922 (1 KB)   | Regular File           | 20/02/2024 4:25:08 AM  |
+    | Internal Finance.lnk           | 606 (1 KB)   | Regular File           | 19/02/2024 11:44:07 AM |
+    | Internal Accounts.lnk          | 883 (1 KB)   | Regular File           | 19/02/2024 11:44:07 AM |
+    | desktop.ini                    | 432 (1 KB)   | Regular File           | 21/01/2024 11:09:03 AM |
+    -----------------------------------------------------------------------------------------------------
+    Using the txt and in combination with this factor, I was able to determine that he copied the 'Documents' folder.
+    [Documents]
+
+There were subfolders in the folder that was copied. What is the name of the first subfolder? (Alphabetically)
+    Continuing to use the information above, this can be done within FTK Imager.
+    [Business Proposals]
+
+
+Eddie opens some files after copying them to the USB. What is the name of the file with the .xlsx extension Eddie opens?
+    Continuing to use the information above in combination with the .txt.
+    [Business Leads.xlsx]
+
+
+Eddie opens some files after copying them to the USB. What is the name of the file with the .docx extension Eddie opens?
+    Continuing to use the information above in combination with the .txt.
+    [Proposal Brnrdr ltd.docx]
+
+
+What was the volume name of the USB?
+    Getting some assistance from this website: https://artefacts.help/windows_registry_usb_activity.html
+    I was able to find SOFTWARE/Microsoft/Windows Search/VolumeInfoCache and use the information I obtained for the next question to answer.
+    [RVT-9J]
+
+
+What was the drive letter of the USB?
+Whilst this is usually mapped within the 'MountedDevices' of the registry which includes previously connected devices, I found this information back at the recent .lnk files hex data.
+This was because the docx and xlsx were opened from the USB rather than the documents section where it was originally contained.
+L...........À......F.. .....û.LÑLfÚ..©.äLfÚ.íûNÑLfÚ.........................7.U.../..·¦õ../E:\.....................................t.Y^.ßÓH.g.3¼î(ºw,ûõ/..J£.>Vh¼.z.1.....WXÕ\..DOCUME~1..b.	
+...ï¾WXÎ\WXÎ\....'...............B......?..D.o.c.u.m.e.n.t.s...W.o.r.k. .D.o.c.u.m.e.n.t.s.....f.1.....WXÈV..IMPORT~1..N.	...ï¾WXÎ\WXÎ\..../..................... D..I.m.p.o.r.t.a.n.t. .d.o.c.s......
+.P...............3.......O...........ª.Æ^....RVT-9J.E:\Documents\Important docs..`...... X.......desktop-3qp5jf3...................âK.Òî.¹ .).AÉ..................âK.Òî.¹ .).AÉE...	.. 9...1SPS±.mD­.
+pH§H@.¤=x.....h....H...å.âK.Òî.¹ .).AÉ............
+Pretty obvious from here that it is:
+[E]
+
+I hope we can find some more evidence to tie this all together. What is Eddie's last name?
+This took way too long to find and I don't find the hint as helpful. After deep scouring and learning within the FTK imager I came across the thumbcaches.
+I used https://thumbcacheviewer.github.io/ after downloading them to carve out the images of the file previews they represented.
+Located underneath is the resume of our culprit.
+89b8c5d5e06b002.png	71750 B	16 KB	71836 B	16 KB	fb9f0c011e7abdd2	2ed0ddd2ede5de09	089b8c5d5e06b002	Windows 10	C:\Users\samue\Downloads\Unsupervised\thumbcache_256.db
+[Homer]
+
+
+There was an unbranded USB in the USB list, can you identify it's manufacturer’s name?
+This is located via ControlSet001/Enum/USB in the registry explorer where I was able to find the Vendor ID. VID 346D
+I used this website in order to find the name: https://the-sz.com/products/usbid/index.php
+[Shenzhen SanDiYiXin Electronic Co.,LTD]
