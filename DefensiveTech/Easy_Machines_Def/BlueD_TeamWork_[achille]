@@ -1,0 +1,106 @@
+Machine=TeamWork | Creator=achille
+
+Sherlock Scenario
+It is Friday afternoon and the SOC at Edny Consulting Ltd has received alerts from the workstation of Jason Longfield, a software engineer on the development team, regarding the execution of some discovery commands. 
+Jason has just gone on holiday and is not available by phone. The workstation appears to have been switched off, so the only evidence we have at the moment is an export of his mailbox containing today's messages. 
+As the company was recently the victim of a supply chain attack, this case is being taken seriously and the Cyber Threat Intelligence team is being called in to determine the severity of the threat.
+
+
+Questions:
+Identify the sender of the suspicious email.
+    After scourering the couple of emails, I found the suspicious phishing email with the sender:
+    [theodore.todtenhaupt@developingdreams.site]
+
+Task 2
+
+The suspicious email came from a custom domain, identify its creation date.
+    Using GoDaddy, I looked up a WHOIS:
+    [2025-01-31]
+
+Task 3
+
+The domain was registered shortly before the suspicious email was received, which likely corresponds to the time when the threat actor was planning this campaign. 
+Which MITRE ATT&CK sub-technique of the Resource Development tactic corresponds to this activity?
+    Threat actor acquired the domain so:
+    [T1583.001]
+
+Task 4
+
+The previously identified domain appears to belong to a company, what is the full URL of the company's page on X (formerly Twitter)?
+    This was a quick google search of the domain + twitter.
+    [https://x.com/Develop_Dreams]
+
+Task 5
+
+Reading the suspicious email carefully, it appears that the threat actor first contacted the victim using the previously identified social media profile. Which MITRE ATT&CK sub-technique of the Resource Development tactic corresponds to this activity?
+    This is establishing a social media account:
+    [T1585.001]
+
+Task 6
+
+What is the name of the game the threat actor would like us to collaborate on?
+    This required me to complete question/task 9 before I could answer this. This also required further research as not even the email source details what the name of the game is.
+    https://thehackernews.com/2024/05/microsoft-uncovers-moonstone-sleet-new.html
+    [DeTankWar]
+
+Task 7
+
+What is the SHA-256 hash of the executable shared by the threat actor?
+    Armed with the above information, I continued my search online and found a Microsoft article, detailing better about this.
+    [56554117d96d12bd3504ebef2a8f28e790dd1fe583c33ad58ccbf614313ead8c]
+
+Task 8
+
+As part of the preparation of the tools for the attack, the threat actor hosted this file, presumably malware, on its infrastructure. Which MITRE ATT&CK sub-technique of the Resource Development tactic corresponds to this activity?
+    This is part of the resource development where the attacker uploads and hosts the malware, making it easier to download.
+    [T1608.001]
+
+Task 9
+
+Based on the information you have gathered so far, do some research to identify the name of the threat actor who may have carried out this attack.
+This threat actor is known to do all of this in MITRE:
+[Moonstone Sleet]
+
+Task 10
+
+What nation is the threat actor believed to be associated with?
+    States this in MITRE:
+    [North Korea]
+
+Task 11
+
+Another campaign from this threat actor used a trojanized version of a well-known software to infect victims. What is the name of this tool?
+    Seen inside the Microsoft article:
+    [putty.exe]
+
+Task 12
+
+Which MITRE ATT&CK technique corresponds to the activity of deploying trojanized/manipulated software?
+    Adversaries may manipulate application software prior to receipt by a final consumer for the purpose of data or system compromise. 
+    Supply chain compromise of software can take place in a number of ways, including manipulation of the application source code, manipulation of the 
+    update/distribution mechanism for that software, or replacing compiled releases with a modified version.
+    [T1195.002]
+
+Task 13
+
+Our company wants to protect itself from other supply chain attacks, so in documenting more about this threat actor, the CTI team found that other security researchers were also tracking a group whose techniques closely match Moonstone Sleet, and discovered a new supply chain campaign around the end of July 2024. What technology is this campaign targeting?
+    Continued in the Microsoft article.
+    [npm]
+
+Task 14
+
+We now need some indicators to be able to rule out that other systems have been compromised. What is the name and version of the lastest malicious package published? (Format: package-name vX.X.X)
+    New article to find out what version: https://www.security-insider.de/cyberangriffe-moonstone-sleet-npm-registry-a-6a79ae422302bf80a32d5694142b5bd0
+    [harthat-hash v1.3.3]
+
+Task 15
+
+The malicious packages downloaded an additional payload from a C2 server, what is its IP address?
+    In the same article:
+    [142.111.77.196]
+
+Task 16
+
+The payload, after being renamed, is finally executed by a legitimate Windows binary to evade defenses. Which MITRE ATT&CK technique corresponds to this activity?
+    This legit binary is rundll32.exe:
+    [T1218.011]
