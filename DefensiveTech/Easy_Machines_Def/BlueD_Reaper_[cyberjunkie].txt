@@ -1,0 +1,100 @@
+Machine=Reaper|Creator=cyberjunkie
+
+Sherlock Scenario
+Our SIEM alerted us to a suspicious logon event which needs to be looked at immediately . The alert details were that the IP Address and the Source Workstation name were a mismatch.
+You are provided a network capture and event logs from the surrounding time around the incident timeframe. Corelate the given evidence and report back to your SOC Manager.
+
+Reaper.zip
+114 KB
+
+**Use smb2.acct in wireshark to display all smb2 packets linked to a user/session**
+
+Task 1
+
+What is the IP Address for Forela-Wkstn001?
+
+[172.17.79.129]
+
+Task 2
+
+What is the IP Address for Forela-Wkstn002?
+
+[172.17.79.136]
+
+Task 3
+
+What is the username of the account whose hash was stolen by attacker?
+I was able to find this via the SMB2 packets displayed. This was through manual searching.
+I could parse packets faster by searching for smb2 and specifically "smb2.acct".
+[arthur.kyle]
+
+Task 4
+
+What is the IP Address of Unknown Device used by the attacker to intercept credentials?
+This is where I pivoted to the Security Log, using Eric Zimmerman's EvtxECmd.exe to parse the logs into a CSV format. (Using Powershell)
+CMD: .\EvtxECmd.exe -f "C:\Users\plat\Downloads\Reaper\Security.evtx" --csv $HOME\OneDrive\Desktop --csvf security.csv
+
+Result:
+Chunk count: 3, Iterating records...
+
+Event log details
+Flags: None
+Chunk count: 3
+Stored/Calculated CRC: D4435560/D4435560
+Earliest timestamp: 2024-07-31 04:54:48.6269614
+Latest timestamp:   2024-07-31 05:04:39.1755363
+Total event log records found: 51
+
+Records included: 51 Errors: 0 Events dropped: 0
+
+Metrics (including dropped events)
+Event ID        Count
+4624            11
+4662            1
+4702            38
+5140            1
+
+Processed 1 file in 6.8478 seconds
+
+Then using TimelineExplorer.exe, we can visualise this csv table in a neat table format. From there, I was able to discover the 'Remote Host' column.
+This lead to the answer below.
+[172.17.79.135]
+
+Task 5
+
+What was the fileshare navigated by the victim user account?
+Since we are aware of when the attacker first authenticated as our victim in frame 1256 using smb.acct, we can parse the packets using the command below.
+smb2 && _ws.col.info matches "(?i) file" && frame.number > 1256
+This gave us the share path of the file below.
+[\\DC01\Trip]
+
+Task 6
+
+What is the source port used to logon to target workstation using the compromised account?
+Using our beautifully parsed security event logs we performed in task 4, we are able to visualise the port and IP on the authentication under the 'Remote Host' column.
+[40252]
+
+Task 7
+
+What is the Logon ID for the malicious session?
+Following our table, we can visualise the payload under column 'Payload3' to see the LogonID.
+[0x64A799]
+
+Task 8
+
+The detection was based on the mismatch of hostname and the assigned IP Address. What is the workstation name and the source IP Address from which the malicious logon occur?
+Visualised under the Remote Host column.
+Remote Host [FORELA-WKSTN002 (172.17.79.135)]
+
+Task 9
+
+At what UTC time did the the malicious logon happen?
+Still in our beautifully formatted security event logs.
+Time Created
+[2024-07-31 04:55:16]
+
+Task 10
+
+What is the share Name accessed as part of the authentication process by the malicious tool used by the attacker?
+Visualisable in the full payload column of our formatted security event logs:
+[\\*\IPC$]
