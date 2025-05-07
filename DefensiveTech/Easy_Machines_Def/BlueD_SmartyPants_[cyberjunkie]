@@ -1,0 +1,85 @@
+Machine=SmartyPants|Creator=cyberjunkie
+
+
+Before moving to the practical side of things, let’s acknowledge some limitations of this artifact.
+
+Disabled by default: This event log source is disabled by default on Windows. This need to be enabled by running the following command:
+wevtutil sl Microsoft-Windows-SmartScreen/Debug /e:true
+GUI-dependent logging: These logs only record executions and file access via Windows GUI (e.g., local interactive sessions or user activity during RDP). Anything run through PowerShell or CMD-SHELL are not recorded.
+
+
+SmartScreen Debug logs in particular stand out because: 
+
+They’re written in real time
+They’re easy to analyze
+They integrate seamlessly into SIEM systems without additional tooling.
+
+
+Sherlock Scenario
+Forela's CTO, Dutch, stores important files on a separate Windows system because the domain environment at Forela is frequently breached due to its exposure across various industries. 
+On 24 January 2025, our worst fears were realised when an intruder accessed the fileserver, installed utilities to aid their actions, stole critical files, and then deleted them, rendering them unrecoverable. 
+The team was immediately informed of the extortion attempt by the intruders, who are now demanding money. While our legal team addresses the situation, we must quickly perform triage to assess the incident's extent. 
+Note from the manager: We enabled SmartScreen Debug Logs across all our machines for enhanced visibility a few days ago, following a security research recommendation. These logs can provide quick insights, so ensure they are utilised.
+
+SmartyPants.zip
+4 MB
+
+Task 1
+
+The attacker logged in to the machine where Dutch saves critical files, via RDP on 24th January 2025. Please determine the timestamp of this login.
+This is correlated to the successful RDP Connection - Event ID 1149 into \Dutch from an IPV6 address.
+[2025-01-24 10:15:14]
+
+Task 2
+
+The attacker downloaded a few utilities that aided them for their sabotage and extortion operation. What was the first tool they downloaded and installed?
+Following on, we can see that the Smartscreen logs contain a significant amount of information related to the execution of files and applications on the device, this is how we can visualised this.
+[WinRAR]
+
+Task 3
+
+They then proceeded to download and then execute the portable version of a tool that could be used to search for files on the machine quickly and efficiently. What was the full path of the executable?
+Following on, we can see that the Smartscreen logs contain a significant amount of information related to the execution of files and applications on the device, this is how we can visualised this.
+[C:\Users\Dutch\Downloads\Everything.exe]
+
+Task 4
+
+What is the execution time of the tool from task 3?
+Correlated with the log above.
+[2025-01-24 10:17:33]
+
+Task 5
+
+The utility was used to search for critical and confidential documents stored on the host, which the attacker could steal and extort the victim. What was the first document that the attacker got their hands on and breached the confidentiality of that document?
+This the Microsoft-Windows-SmartScreen/Debug logs which have visualised the files opened by the user in a mode of watching protection. This is how we are able to see what documents the attacker got their hands on within this timeframe.
+[C:\Users\Dutch\Documents\2025- Board of directors Documents\Ministry Of Defense Audit.pdf]
+
+Task 6
+
+Find the name and path of second stolen document as well.
+Same for this document as above.
+[C:\Users\Dutch\Documents\2025- Board of directors Documents\2025-BUDGET-ALLOCATION-CONFIDENTIAL.pdf]
+
+Task 7
+
+The attacker installed a Cloud utility as well to steal and exfiltrate the documents. What is name of the cloud utility?
+We see this used after the above documents are visualised.
+[MEGAsync]
+
+Task 8
+
+When was this utility executed?
+Same event log.
+[2025-01-24 10:22:19]
+
+Task 9
+
+The Attacker also proceeded to destroy the data on the host so it is unrecoverable. What utility was used to achieve this?
+Found right at the end of the event logs for the Smartscreen logs.
+[File Shredder]
+
+Task 10
+
+The attacker cleared 2 important logs, thinking they covered all their tracks. When was the security log cleared?
+Whilst this is Task 10, I completed this first, searching specifically for event ID 1102 in relation Microsoft-Windows-EventLog.
+[2025-01-24 10:28:41]
