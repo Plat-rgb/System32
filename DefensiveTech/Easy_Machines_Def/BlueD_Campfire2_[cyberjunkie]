@@ -1,0 +1,49 @@
+Machine=Campfire2|Creator=cyberjunkie
+
+Sherlock Scenario
+Forela's Network is constantly under attack. The security system raised an alert about an old admin account requesting a ticket from KDC on a domain controller. Inventory shows that this user account is not used as of now so you are tasked to take a look at this. This may be an AsREP roasting attack as anyone can request any user's ticket which has preauthentication disabled.
+
+campfire-2.zip
+24 KB
+
+** Note: All major open-source tools, like Impacket and Rubeus, request tickets in RC4 encryption type. 
+** Note: you can AS-REP Roast with just a user list (i.e., if you gather it from an SMB NULL SESSION). 
+But if you're just running a tool like GetNPUsers.py or Rubeus you need a valid user account to query the user list (which all happens in the background when you run the attack).
+
+Task 1
+
+When did the ASREP Roasting attack occur, and when did the attacker request the Kerberos ticket for the vulnerable user?
+ASREP Roasting can be visualised by many things including: 
+  'Map Description:A Kerberos authentication ticket (TGT) was requested'
+  'Payload Data4:TicketEncryptionType: RC4-HMAC'
+  'Payload Data6:PreAuthType: Logon without Pre-Authentication.'
+  'Event Id: 4768'
+[2024-05-29 06:36:40]
+
+
+Task 2
+
+Please confirm the User Account that was targeted by the attacker.
+Follow the same packet:
+[arthur.kyle]
+
+
+Task 3
+
+What was the SID of the account?
+Located in the entire payload section: 
+[S-1-5-21-3239415629-1862073780-2394361899-1601]
+
+
+Task 4
+
+It is crucial to identify the compromised user account and the workstation responsible for this attack. Please list the internal IP address of the compromised asset to assist our threat-hunting team.
+Same event log:
+[172.17.79.129]
+
+
+Task 5
+
+We do not have any artifacts from the source machine yet. Using the same DC Security logs, can you confirm the user account used to perform the ASREP Roasting attack so we can contain the compromised account/s?
+Sign in around the time of the attack on the attacking device:
+[happy.grunwald]
