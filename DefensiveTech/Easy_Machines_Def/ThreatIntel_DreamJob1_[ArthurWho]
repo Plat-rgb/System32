@@ -1,0 +1,105 @@
+Machine=DreamJob1|Creator=ArthurWho
+
+Sherlock Scenario
+You are a junior threat intelligence analyst at a Cybersecurity firm. You have been tasked with investigating a Cyber espionage campaign known as Operation Dream Job. 
+The goal is to gather crucial information about this operation.
+
+DreamJob1.zip
+331 bytes
+
+3 IOCS in a Txt file.
+1. 7bb93be636b332d0a142ff11aedb5bf0ff56deabba3aa02520c85bd99258406f -> This points to a malware hash -> https://www.virustotal.com/gui/file/7bb93be636b332d0a142ff11aedb5bf0ff56deabba3aa02520c85bd99258406f
+2. adce894e3ce69c9822da57196707c7a15acee11319ccc963b84d83c23c3ea802 -> Another Malware Hash -> https://www.virustotal.com/gui/file/adce894e3ce69c9822da57196707c7a15acee11319ccc963b84d83c23c3ea802
+3. 0160375e19e606d06f672be6e43f70fa70093d2a30031affd2929a5c446d07c1 
+
+Task 1
+
+Who conducted Operation Dream Job?
+https://www.clearskysec.com/wp-content/uploads/2020/08/Dream-Job-Campaign.pdf
+[Lazarus Group]
+
+Task 2
+
+When was this operation first observed?
+Same article: In June 2020, ESET has published a research12 on the group’s campaign, which attacked defense and 
+aerospace companies in Europe and the Middle East, between September and December 2019.
+[September 2019]
+
+Task 3
+
+There are 2 campaigns associated with Operation Dream Job. One is Operation North Star, what is the other?
+Same article:
+In June 2020, ESET has published a research12 on the group’s campaign, which attacked defense and 
+aerospace companies in Europe and the Middle East, between September and December 2019. The 
+campaign, which was named “In(ter)ception” after one of the malicious files downloaded by it, made 
+wide use of social engineering and relied on a modular malware to collect reconnaissance on target 
+networks. We present the main findings of the ESET report, because it served as a basis for our research 
+and because it depicts one of the scenarios that we have identified in Israel as well. 
+[Operation Interception]
+Task 4
+
+During Operation Dream Job, there were the two system binaries used for proxy execution. One was Regsvr32, what was the other?
+https://attack.mitre.org/campaigns/C0022/ -> 	
+During Operation Dream Job, Lazarus Group executed malware with C:\\windows\system32\rundll32.exe "C:\ProgramData\ThumbNail\thumbnail.db", CtrlPanel S-6-81-3811-75432205-060098-6872 0 0 905
+[Rundll32]
+
+Task 5
+
+What lateral movement technique did the adversary use?
+https://mitre-attack.github.io/attack-navigator//#layerURL=https%3A%2F%2Fattack.mitre.org%2Fcampaigns%2FC0022%2FC0022-enterprise-layer.json
+[Internal Spearphishing]
+
+Task 6
+
+What is the technique ID for the previous answer?
+Same URL.
+[T1534]
+
+Task 7
+
+What Remote Access Trojan did the Lazarus Group use in Operation Dream Job?
+https://attack.mitre.org/campaigns/C0022/
+During Operation Dream Job, Lazarus Group used DRATzarus to deploy open source software and partly commodity software such as Responder, Wake-On-Lan, and ChromePass to target infected hosts.
+[DRATzarus]
+
+Task 8
+
+What technique did the malware use for execution?
+https://mitre-attack.github.io/attack-navigator//#layerURL=https%3A%2F%2Fattack.mitre.org%2Fsoftware%2FS0694%2FS0694-enterprise-layer.json
+[Native API]
+
+Task 9
+
+What technique did the malware use to avoid detection in a sandbox?
+Same URL.
+[Time Based Evasion]
+
+Task 10
+
+To answer the remaining questions, utilize VirusTotal and refer to the IOCs.txt file. What is the name associated with the first hash provided in the IOC file?
+https://www.virustotal.com/gui/file/7bb93be636b332d0a142ff11aedb5bf0ff56deabba3aa02520c85bd99258406f/community
+[IEXPLORE.EXE]
+
+Task 11
+
+When was the file associated with the second hash in the IOC first created?
+https://www.virustotal.com/gui/file/adce894e3ce69c9822da57196707c7a15acee11319ccc963b84d83c23c3ea802/details
+[2020-05-12 19:26:17]
+
+Task 12
+
+What is the name of the parent execution file associated with the second hash in the IOC?
+https://www.virustotal.com/gui/file/adce894e3ce69c9822da57196707c7a15acee11319ccc963b84d83c23c3ea802/relations
+[BAE_HPC_SE.iso]
+
+Task 13
+
+Examine the third hash provided. What is the file name likely used in the campaign that aligns with the adversary's known tactics?
+https://www.virustotal.com/gui/file/0160375e19e606d06f672be6e43f70fa70093d2a30031affd2929a5c446d07c1
+[Salary_Lockheed_Martin_job_opportunities_confidential.doc ]
+
+Task 14
+
+Which URL was contacted on 2022-08-03 by the file associated with the third hash in the IOC file?
+https://www.virustotal.com/gui/file/0160375e19e606d06f672be6e43f70fa70093d2a30031affd2929a5c446d07c1
+[https://markettrendingcenter.com/lk_job_oppor.docx]
