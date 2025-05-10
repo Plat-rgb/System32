@@ -1,0 +1,54 @@
+Machine=CrownJewel2|Creator=cyberjunkie
+
+Sherlock Scenario
+Forela's Domain environment is pure chaos. Just got another alert from the Domain controller of NTDS.dit database being exfiltrated. Just one day prior you responded to an alert on the same domain controller where an attacker dumped NTDS.dit via vssadmin utility. However, you managed to delete the dumped files kick the attacker out of the DC, and restore a clean snapshot. Now they again managed to access DC with a domain admin account with their persistent access in the environment. This time they are abusing ntdsutil to dump the database. Help Forela in these chaotic times!!
+
+CrownJewel2.zip
+159 KB
+
+Task 1
+
+When utilizing ntdsutil.exe to dump NTDS on disk, it simultaneously employs the Microsoft Shadow Copy Service. What is the most recent timestamp at which this service entered the running state, signifying the possible initiation of the NTDS dumping process?
+Payload2: Status: running
+Payload1: Microsoft Software Shadow Copy Provider
+[2024-05-15 05:39:55]
+
+Task 2
+
+Identify the full path of the dumped NTDS file.
+Payload1: NTDS the database engine created a new database
+ESENT Event logs: Event ID: 330, 326, 325, and 327.
+[C:\Windows\Temp\dump_tmp\Active Directory\ntds.dit]
+
+Task 3
+
+When was the database dump created on the disk?
+Same event log of 325.
+[2024-05-15 05:39:56]
+
+Task 4
+
+When was the newly dumped database considered complete and ready for use?
+Same event log of 327.
+[2024-05-15 05:39:57]
+
+Task 5
+
+Event logs use event sources to track events coming from different sources. Which event source provides database status data like creation and detachment?
+The current logs I evaluated in Task 2:
+[ESENT]
+
+Task 6
+
+When ntdsutil.exe is used to dump the database, it enumerates certain user groups to validate the privileges of the account being used. Which two groups are enumerated by the ntdsutil.exe process? Give the groups in alphabetical order joined by comma space.
+MapDescription: A security-enabled local group membership was enumerated
+In some cases, I would also filter Payload for 'ntdsutil' but this is mainly the only process with extensive enumeration.
+[Administrators, Backup Operators]
+
+Task 7
+
+Now you are tasked to find the Login Time for the malicious Session. Using the Logon ID, find the Time when the user logon session started.
+MapDescription: User Logon 
+Provider: Microsoft-Windows-Logon | Channel: System
+Event id: 7001
+[2024-05-15 05:36:31]
