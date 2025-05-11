@@ -1,0 +1,263 @@
+Machine=Noxious|Creator=cyberjunkie
+
+Sherlock Scenario
+The IDS device alerted us to a possible rogue device in the internal Active Directory network. The Intrusion Detection System also indicated signs of LLMNR traffic, which is unusual. It is suspected that an LLMNR poisoning attack occurred. The LLMNR traffic was directed towards Forela-WKstn002, which has the IP address 172.17.79.136. A limited packet capture from the surrounding time is provided to you, our Network Forensics expert. Since this occurred in the Active Directory VLAN, it is suggested that we perform network threat hunting with the Active Directory attack vector in mind, specifically focusing on LLMNR poisoning.
+
+noxious.zip
+129 MB
+
+LLMNR is a name resolution protocol — it helps a computer find the IP address for another computer on the same local network when DNS isn't available.
+Can return with IPv4 A Records or IPv6 AAAA records on UDP port 5355.
+
+Task 1
+
+Its suspected by the security team that there was a rogue device in Forela's internal network running responder tool to perform an LLMNR Poisoning attack. Please find the malicious IP Address of the machine.
+Using networkminer, I was able to examine the pcap. Looking through the hosts, I found an odd operating system.
+172.17.79.135 [V17VT3M03] [DCC01.local] [DCC01] [dcc01.local] [dcc01] [Forela-Wkstn001.local] [Forela-Wkstn001] [Forela-Wkstn002.local] [Forela-Wkstn002] [kali] (Linux)
+Whilst kali is known as a pen-testing OS, I wanted more confirmation on the attack.
+Using wireshark, I also confirmed the variance on the IP address using statistics -> Resolved Addresses.
+Furthermore, using commands: 'ip.src == 172.17.79.135 || ip.dst == 172.17.79.135' as well as 'llmnr', I was able to see multiple workstations associated with the one MAC and IP, associated with LLMNR poisoning.
+Both DCC01 and Wkstn001 respond to every LLMNR query also.
+Every response within the LLMNR protocol:
+  DCC01 responds with both A, AAAA records via IPv6 and is associated with 172.17.79.135 && fe80::2068:fe84:5fc8:efb7
+  Wkstn001 also responds with both A, AAAA records via IPv4 and is associated with 172.17.79.135.
+
+This can be visualised below:
+Frame 9345: 118 bytes on wire (944 bits), 118 bytes captured (944 bits)
+Ethernet II, Src: Forela-Wkstn001 (00:0c:29:36:18:82), Dst: Forela-Wkstn002.forela.local (00:0c:29:85:78:cb)
+    Destination: Forela-Wkstn002.forela.local (00:0c:29:85:78:cb)
+    **Source: Forela-Wkstn001 (00:0c:29:36:18:82)**
+    Type: IPv6 (0x86dd)
+    [Stream index: 16]
+Internet Protocol Version 6, Src: DCC01 (fe80::2068:fe84:5fc8:efb7), Dst: Forela-Wkstn002.local (fe80::7994:1860:711:c243)
+    0110 .... = Version: 6
+    .... 0000 0000 .... .... .... .... .... = Traffic Class: 0x00 (DSCP: CS0, ECN: Not-ECT)
+    .... 1011 1100 0000 1000 1010 = Flow Label: 0xbc08a
+    Payload Length: 64
+    Next Header: UDP (17)
+    Hop Limit: 64
+    **Source Address: DCC01 (fe80::2068:fe84:5fc8:efb7)**
+    Destination Address: Forela-Wkstn002.local (fe80::7994:1860:711:c243)
+    [Stream index: 3]
+User Datagram Protocol, Src Port: llmnr (5355), Dst Port: 61884 (61884)
+Link-local Multicast Name Resolution (response)
+
+[172.17.79.135]
+
+Task 2
+
+What is the hostname of the rogue machine?
+Using wireshark, I used dhcp.option.hostname.
+This can be seen in NetworkMiner under Hostname as well.
+[Kali]
+
+Task 3
+
+Now we need to confirm whether the attacker captured the user's hash and it is crackable!! What is the username whose hash was captured?
+This was a bit of luck finding a packet with this in but using 'ip.src == 172.17.79.135 || ip.dst == 172.17.79.135' I was able to find a RDP packet.
+**This can also be found within Credentials in Network Miner.
+This is the packet below:
+Frame 27273: 103 bytes on wire (824 bits), 103 bytes captured (824 bits)
+Ethernet II, Src: Forela-Wkstn001 (00:0c:29:36:18:82), Dst: Forela-Wkstn002.forela.local (00:0c:29:85:78:cb)
+    Destination: Forela-Wkstn002.forela.local (00:0c:29:85:78:cb)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: Forela-Wkstn001 (00:0c:29:36:18:82)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 16]
+Internet Protocol Version 4, Src: Forela-Wkstn001 (172.17.79.135), Dst: Forela-Wkstn002.forela.local (172.17.79.136)
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+    Total Length: 89
+    Identification: 0x7579 (30073)
+    010. .... = Flags: 0x2, Don't fragment
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: TCP (6)
+    Header Checksum: 0xcdf3 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: Forela-Wkstn001 (172.17.79.135)
+    Destination Address: Forela-Wkstn002.forela.local (172.17.79.136)
+    [Stream index: 175]
+Transmission Control Protocol, Src Port: 53524 (53524), Dst Port: ms-wbt-server (3389), Seq: 1, Ack: 1, Len: 49
+TPKT, Version: 3, Length: 49
+ISO 8073/X.224 COTP Connection-Oriented Transport Protocol
+Remote Desktop Protocol
+    Routing Token/Cookie: Cookie: mstshash=john.deacon
+    Type: RDP Negotiation Request (0x01)
+    Flags: 0x00
+    Length: 8
+    requestedProtocols: 0x00000003, TLS security supported, CredSSP supported
+
+[john.deacon]
+
+
+Task 4
+
+In NTLM traffic we can see that the victim credentials were relayed multiple times to the attacker's machine. When were the hashes captured the First time?
+First NTLMSSP transmission inside Credentials tab within NetworkMiner.
+[2024-06-24 11:18:30]
+
+
+Task 5
+
+What was the typo made by the victim when navigating to the file share that caused his credentials to be leaked?
+We can see this via the host names as well, it appears this is what the attacker was hoping.
+[DCC01]
+
+Task 6
+
+To get the actual credentials of the victim user we need to stitch together multiple values from the ntlm negotiation packets. What is the NTLM server challenge value?
+Back inside wireshark, using the command 'ntlmssp' I found within a response the challenge value.
+This could be found easier via 'ntlmssp.ntlmserverchallenge' and this is the 1st value out of many challenges.
+[601019d191f054f1]
+
+Task 7
+
+Now doing something similar find the NTProofStr value.
+'ntlmssp.ntlmv2_response.ntproofstr' -> Response packet to the challenge.
+[c0cc803a6d9fb5a9082253a04dbd4cd4]
+
+Task 8
+
+To test the password complexity, try recovering the password from the information found from packet capture. This is a crucial step as this way we can find whether the attacker was able to crack this and how quickly.
+This required assistance from the blog -> https://www.hackthebox.com/blog/llmnr-poisoning-attack-detection
+Here it details the format for cracking passwords with regards to what we captured:
+User::Domain:ServerChallenge:NTProofStr:NTLMv2Response(without first 16 bytes/32 characters).
+E.g. Remove NTProofStr from the NTLMv2Response
+
+hashcat -a0 -m5600 deaconpass.txt /usr/share/wordlists/rockyou.txt
+{
+  -a -> attack mode
+  0 -> Straight
+  -m -> hash type
+  5600 -> NetNTLMv2 (Network Protocol) Hash
+  
+[NotMyPassword0k?]
+
+└─$ hashcat -a0 -m5600 deaconpass.txt /usr/share/wordlists/rockyou.txt
+hashcat (v6.2.6) starting
+
+/usr/share/wordlists/rockyou.txt: No such file or directory
+
+Started: Sat May 10 20:36:03 2025
+Stopped: Sat May 10 20:36:03 2025
+                                                                                                                                                                                                                                           
+┌──(kali㉿kali)-[~/Desktop]
+└─$ hashcat -a0 -m5600 deaconpass.txt /usr/share/wordlists/rockyou.txt
+hashcat (v6.2.6) starting
+
+OpenCL API (OpenCL 3.0 PoCL 6.0+debian  Linux, None+Asserts, RELOC, LLVM 17.0.6, SLEEF, DISTRO, POCL_DEBUG) - Platform #1 [The pocl project]
+============================================================================================================================================
+* Device #1: cpu-sandybridge-Intel(R) Core(TM) i7-9700 CPU @ 3.00GHz, 1438/2941 MB (512 MB allocatable), 4MCU
+
+Minimum password length supported by kernel: 0
+Maximum password length supported by kernel: 256
+
+Hashes: 1 digests; 1 unique digests, 1 unique salts
+Bitmaps: 16 bits, 65536 entries, 0x0000ffff mask, 262144 bytes, 5/13 rotates
+Rules: 1
+
+Optimizers applied:
+* Zero-Byte
+* Not-Iterated
+* Single-Hash
+* Single-Salt
+
+ATTENTION! Pure (unoptimized) backend kernels selected.
+Pure kernels can crack longer passwords, but drastically reduce performance.
+If you want to switch to optimized kernels, append -O to your commandline.
+See the above message to find out about the exact limits.
+
+Watchdog: Temperature abort trigger set to 90c
+
+Initializing backend runtime for device #1. Please be patient...^C
+                                                                                                                                                                                                                                           
+┌──(kali㉿kali)-[~/Desktop]
+└─$ hashcat -a0 -m5600 deaconpass.txt /usr/share/wordlists/rockyou.txt --status
+hashcat (v6.2.6) starting
+
+OpenCL API (OpenCL 3.0 PoCL 6.0+debian  Linux, None+Asserts, RELOC, LLVM 17.0.6, SLEEF, DISTRO, POCL_DEBUG) - Platform #1 [The pocl project]
+============================================================================================================================================
+* Device #1: cpu-sandybridge-Intel(R) Core(TM) i7-9700 CPU @ 3.00GHz, 1438/2941 MB (512 MB allocatable), 4MCU
+
+Minimum password length supported by kernel: 0
+Maximum password length supported by kernel: 256
+
+Hashes: 1 digests; 1 unique digests, 1 unique salts
+Bitmaps: 16 bits, 65536 entries, 0x0000ffff mask, 262144 bytes, 5/13 rotates
+Rules: 1
+
+Optimizers applied:
+* Zero-Byte
+* Not-Iterated
+* Single-Hash
+* Single-Salt
+
+ATTENTION! Pure (unoptimized) backend kernels selected.
+Pure kernels can crack longer passwords, but drastically reduce performance.
+If you want to switch to optimized kernels, append -O to your commandline.
+See the above message to find out about the exact limits.
+
+Watchdog: Temperature abort trigger set to 90c
+
+Host memory required for this attack: 0 MB
+
+Dictionary cache built:
+* Filename..: /usr/share/wordlists/rockyou.txt
+* Passwords.: 14344392
+* Bytes.....: 139921507
+* Keyspace..: 14344385
+* Runtime...: 0 secs
+
+Cracking performance lower than expected?                 
+
+* Append -O to the commandline.
+  This lowers the maximum supported password/salt length (usually down to 32).
+
+* Append -w 3 to the commandline.
+  This can cause your screen to lag.
+
+* Append -S to the commandline.
+  This has a drastic speed impact but can be better for specific attacks.
+  Typical scenarios are a small wordlist but a large ruleset.
+
+* Update your backend API runtime / driver the right way:
+  https://hashcat.net/faq/wrongdriver
+
+* Create more work items to make use of your parallelization power:
+  https://hashcat.net/faq/morework
+
+JOHN.DEACON::FORELA:601019d191f054f1:c0cc803a6d9fb5a9082253a04dbd4cd4:010100000000000080e4d59406c6da01cc3dcfc0de9b5f2600000000020008004e0042004600590001001e00570049004e002d00360036004100530035004c0  (\n)
+03100470052005700540004003400570049004e002d00360036004100530035004c00310047005200570054002e004e004200460059002e004c004f00430041004c00030014004e004200460059002e004c004f00430041004c00050014004e004200  (\n)
+460059002e004c004f00430041004c000700080080e4d59406c6da0106000400020000000800300030000000000000000000000000200000eb2ecbc5200a40b89ad5831abf821f4f20a2c7f352283a35600377e1f294f1c90a0010000000000000000  (\n)
+00000000000000000000900140063006900660073002f00440043004300300031000000000000000000:NotMyPassword0k? 
+Session..........: hashcat                                
+Status...........: Cracked
+Hash.Mode........: 5600 (NetNTLMv2)
+Hash.Target......: JOHN.DEACON::FORELA:601019d191f054f1:c0cc803a6d9fb5...000000
+Time.Started.....: Sat May 10 20:41:29 2025 (6 secs)
+Time.Estimated...: Sat May 10 20:41:35 2025 (0 secs)
+Kernel.Feature...: Pure Kernel
+Guess.Base.......: File (/usr/share/wordlists/rockyou.txt)
+Guess.Queue......: 1/1 (100.00%)
+Speed.#1.........:  1862.7 kH/s (0.38ms) @ Accel:256 Loops:1 Thr:1 Vec:8
+Recovered........: 1/1 (100.00%) Digests (total), 1/1 (100.00%) Digests (new)
+Progress.........: 10777600/14344385 (75.13%)
+Rejected.........: 0/10777600 (0.00%)
+Restore.Point....: 10776576/14344385 (75.13%)
+Restore.Sub.#1...: Salt:0 Amplifier:0-1 Iteration:0-1
+Candidate.Engine.: Device Generator
+Candidates.#1....: Nov2599 -> Nongraffy999
+Hardware.Mon.#1..: Util: 73%
+Started: Sat May 10 20:41:04 2025
+
+
+Task 9
+
+Just to get more context surrounding the incident, what is the actual file share that the victim was trying to navigate to?
+Back to SMBv2, we can see that he was trying (with the typo and after) to navigate to:
+\\DC01\DC-Confidential
