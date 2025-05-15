@@ -1,0 +1,2 @@
+Powershell quick cmd hints
+(&&) is not supported, use -and with ()
